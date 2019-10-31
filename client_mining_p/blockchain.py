@@ -50,9 +50,9 @@ class Blockchain(object):
         # Return the new block
         return block
 
-    def new_transcation(self, sender, recipient, amount):
+    def new_transaction(self, sender, recipient, amount):
         """
-        Creates a new trnascation to go into the next mined block
+        Creates a new transaction to go into the next mined block
         """
 
         # append the sender, recipient and amount to the current transcations
