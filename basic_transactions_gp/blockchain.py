@@ -184,7 +184,7 @@ def last_block():
     return jsonify(response), 200
 
 
-@app_route('/transactions/new', methods=['POST'])
+@app.route('/transactions/new', methods=['POST'])
 def new_transaction():
     # get the values in json format
     values = request.get_json()
