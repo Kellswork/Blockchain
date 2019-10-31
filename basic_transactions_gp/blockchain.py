@@ -42,6 +42,7 @@ class Blockchain(object):
             'index': len(self.chain) + 1,
             'timestamp': time(),
             "transactions": self.current_transactions,
+            'proof': proof,
             'previous_hash': previous_hash or self.hash(self.chain[-1]),
         }
 
@@ -52,12 +53,12 @@ class Blockchain(object):
         # Return the new block
         return block
 
-    def new_transcation(self, sender, recipient, amount):
+    def new_transaction(self, sender, recipient, amount):
         """
-        Creates a new trnascation to go into the next mined block
+        Creates a new transaction to go into the next mined block
         """
 
-        # append the sender, recipient and amount to the current transcations
+        # append the sender, recipient and amount to the current transactions
         self.current_transactions.append({'sender': sender, 'recipient': recipient, 'amount': amount})
         return self.last_block['index'] + 1
 
@@ -98,22 +99,6 @@ class Blockchain(object):
     def last_block(self):
         return self.chain[-1]
 
-    def proof_of_work(self):
-        """
-        Simple Proof of Work Algorithm
-        Stringify the block and look for a proof.
-        Loop through possibilities, checking each one against `valid_proof`
-        in an effort to find a number that is a valid proof
-        :return: A valid proof for the provided block
-        """
-        # TODO: one line version of code to stringify a block
-        block_string = json.jumps(self.last_block, sort_keys=True).encode()
-        proof = 0
-        while self.valid_proof(block_string, proof) is False:
-            proof += 1
-        # return proof
-        return proof
-
     @staticmethod
     def valid_proof(block_string, proof):
         """
@@ -128,8 +113,8 @@ class Blockchain(object):
         """
         # TODO
         guess = f'{block_string}{proof}'.encode()
-        guess_hash = hashlib.sha3_256(guess).hexdigest()
-        return guess_hash[: 3] == "000"
+        guess_hash = hashlib.sha_256(guess).hexdigest()
+        return guess_hash[: 6] == "000000"
 
 
 # Instantiate our Node
@@ -181,27 +166,6 @@ def mine():
         return jsonify(response), 200
 
 
-@app.route('/mine', methods=['GET'])
-def mine():
-    # Run the proof of work algorithm to get the next proof
-    proof = blockchain.proof_of_work()
-
-    # Forge the new Block by adding it to the chain with the proof
-    previous_hash = blockchain.hash(blockchain.last_block)
-    block = blockchain.new_block(proof, previous_hash)
-
-    response = {
-        # TODO: Send a JSON response with the new block
-        'message': "New Block Forged",
-        'index': block['index'],
-        'transactions': block['transactions'],
-        'proof': block['proof'],
-        'previous_hash': block['previous_hash'],
-    }
-
-    return jsonify(response), 200
-
-
 @app.route('/chain', methods=['GET'])
 def full_chain():
     response = {
@@ -210,6 +174,34 @@ def full_chain():
         'chain': blockchain.chain,
     }
     return jsonify(response), 200
+
+
+@app.route('/last_block', methods=['GET'])
+def last_block():
+    response = {
+        'last_block': blockchain.last_block
+    }
+    return jsonify(response), 200
+
+
+@app.route('/transactions/new', methods=['POST'])
+def new_transaction():
+    # get the values in json format
+    values = request.get_json()
+    # check that the required fields exist
+    required_fields = ['sender', 'recipient', 'amount']
+
+    if not all(k in values for k in required_fields):
+        response = {'message': 'Error Missing values'}
+        return jsonify(response), 400
+
+    # create a new transaction
+    index = blockchain.new_transaction(values['sender'], values['recipient'], values['amount'])
+
+    # set the response object with a maessage that the transaction will be added at the index
+    response = {'message': f'Transaction will be added to Block {index}'}
+    # return the response
+    return jsonify(response), 201
 
 
 # Run the program on port 5000
