@@ -85,5 +85,4 @@ if __name__ == '__main__':
             coins_mined += 1
             print(f"Total coins mined: {coins_mined}")
         else:
-            coins_mined += 1
-            print(f"Totak coins mined: {coins_mined}")
+            print(f"Total coins mined: {coins_mined}")
